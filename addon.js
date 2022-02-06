@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Prosperous Universe
+// @name         Prosperous Universe Screens Inline
 // @namespace    http://tampermonkey.net/
-// @version      0.2
+// @version      0.3
 // @description  Prosperous Universe enhancements.
 // @author       Manderius
 // @match        https://apex.prosperousuniverse.com/
@@ -15,6 +15,7 @@
 // If you want all screens, use the following line instead:
 // const exceptions = [];
 const exceptions = ['finances'];
+const exchange = 'AI1';
 
 function showScreensInTopBar() {
     var navbar = document.getElementById('TOUR_TARGET_SCREEN_CONTROLS');
@@ -26,22 +27,103 @@ function showScreensInTopBar() {
     menuUl.childNodes.forEach((cn) => links.push({ 'Name': cn.children[1].innerHTML, 'Link': cn.children[1].href }));
     for (var link of links) {
         if (exceptions.includes(link.Name.toLowerCase())) continue;
-        var div = document.createElement('div');
-        div.classList = navbarItemClassList;
-        var aelem = document.createElement('a');
-        aelem.classList = nbitMainCL;
-        aelem.style.color = 'inherit';
-        aelem.innerHTML = link.Name;
-        aelem.href = link.Link;
-        div.appendChild(aelem);
-        var line = document.createElement('div');
-        line.classList = nbitUnderlineCL;
-        div.appendChild(line);
-        navbar.appendChild(div);
+        var button = `<div class="${navbarItemClassList}">
+                          <a class="${nbitMainCL}" style="color: inherit" href="${link.Link}">${link.Name}</a>
+                          <div class="${nbitUnderlineCL}"></div>
+                      </div>`;
+        navbar.appendChild(createNode(button));
     }
+}
+
+function createNode(htmlString) {
+  var div = document.createElement('div');
+  div.innerHTML = htmlString.trim();
+  return div.firstChild;
+}
+
+function createQuickRowButton(shortTextBold, shortTextNormal, longText, command) {
+    const template = `<div class="_38ZndITVgwaKPL7o6Nn0EM _33A_5lETf4HBqwJi_q-jhZ _3dW9W1Qi1zDylwVf7nNSih">
+                          <span><span class="_1afHq-np-jxmsbFE64yu4f">{{:shortBold}}</span>
+                              {{:shortNormal}}</span><span class="_1_V43bWTfSSXMFIzsgIWFM">: {{:longText}}
+                          </span>
+                     </div>`;
+    let result = template.replace("{{:shortBold}}", shortTextBold)
+                         .replace("{{:shortNormal}}", shortTextNormal)
+                         .replace("{{:longText}}", longText);
+    let node = createNode(result);
+    node.onclick = () => { showBuffer(command); };
+    return node;
+}
+
+function createCXButtons(container) {
+    const matCmd = container.children[0].children[1].innerHTML;
+    const matCmdArr = matCmd.split(" ");
+    if (matCmdArr[0].toUpperCase() !== "MAT") return;
+    const matId = matCmdArr[1];
+    const row = createNode(`<div class="_3ZAsQKEW4Uf1rMb_vcJ9ix"></div>`);
+    const matEx = `${matId}.${exchange}`;
+    row.appendChild(createQuickRowButton("CXOB", matEx, "Order Book", `CXOB ${matEx}` ));
+    row.appendChild(createQuickRowButton("CXPC", matEx, "Price Chart", `CXPC ${matEx}` ));
+    row.appendChild(createQuickRowButton("CXPO", matEx, "Place Order", `CXPO ${matEx}` ));
+    container.insertBefore(row, container.children[1]);
+}
+
+function changeValue(input, value){
+    var nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype,
+      "value"
+    ).set;
+    nativeInputValueSetter.call(input, value);
+
+    var inputEvent = new Event("input", { bubbles: true });
+    input.dispatchEvent(inputEvent);
+}
+
+function showBuffer(command) {
+    const addSubmitCommand = (input, cmd) => {
+        changeValue(input, cmd);
+        input.parentElement.parentElement.requestSubmit();
+    }
+
+    // Watch for future buffer creation
+    monitorOnElementCreated("._3pBmt8VeO58Hr71J67G8di", (elem) => addSubmitCommand(elem, command));
+
+    // Create new Buffer
+    document.getElementById('TOUR_TARGET_BUTTON_BUFFER_NEW').click();
+}
+
+function monitorOnElementCreated(selector, callback, onlyOnce = true) {
+    const getElementsFromNodes = (nodes) => Array.from(nodes).flatMap(node => node.nodeType === 3 ? null : Array.from(node.querySelectorAll(selector))).filter(item => item !== null);
+    let onMutationsObserved = function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.addedNodes.length) {
+                console.log(mutation.addedNodes)
+                console.log(Array.from(mutation.addedNodes))
+                var elements = getElementsFromNodes(mutation.addedNodes);
+                console.log(elements)
+                for (var i = 0, len = elements.length; i < len; i++) {
+                    callback(elements[i]);
+                    if (onlyOnce) observer.disconnect();
+                }
+            }
+        });
+    };
+
+    let containerSelector = 'body';
+    let target = document.querySelector(containerSelector);
+    let config = { childList: true, subtree: true };
+    let MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+    let observer = new MutationObserver(onMutationsObserved);
+    observer.observe(target, config);
+}
+
+function setupMaterialBufferWatch() {
+    const insideFrameSelector = '._1h7jHHAYnTmdWfZvSkS4bo';
+    monitorOnElementCreated(insideFrameSelector, createCXButtons, false);
 }
 
 (function () {
     'use strict';
     setTimeout(showScreensInTopBar, 4000);
+    setTimeout(setupMaterialBufferWatch, 4000);
 })();
