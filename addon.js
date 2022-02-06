@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Prosperous Universe Screens Inline
 // @namespace    http://tampermonkey.net/
-// @version      0.3
+// @version      0.2
 // @description  Prosperous Universe enhancements.
 // @author       Manderius
 // @match        https://apex.prosperousuniverse.com/
@@ -122,8 +122,17 @@ function setupMaterialBufferWatch() {
     monitorOnElementCreated(insideFrameSelector, createCXButtons, false);
 }
 
+function waitForApexLoad() {
+    const setup = () => {
+        showScreensInTopBar();
+        setupMaterialBufferWatch();
+    }
+
+    const selector = '#TOUR_TARGET_BUTTON_BUFFER_NEW';
+    monitorOnElementCreated(selector, setup)
+}
+
 (function () {
     'use strict';
-    setTimeout(showScreensInTopBar, 4000);
-    setTimeout(setupMaterialBufferWatch, 4000);
+    waitForApexLoad();
 })();
