@@ -1,14 +1,14 @@
 // ==UserScript==
-// @name         Prosperous Universe Screens Inline
+// @name         Prosperous Universe Screens & Materials
 // @namespace    http://tampermonkey.net/
-// @version      0.2
+// @version      0.3
 // @description  Prosperous Universe enhancements.
 // @author       Manderius
 // @match        https://apex.prosperousuniverse.com/
 // @icon         https://www.google.com/s2/favicons?domain=prosperousuniverse.com
 // @grant        none
-// @downloadURL  https://github.com/Manderius/PrUn_Addon/main/addon.js
-// @updateURL    https://github.com/Manderius/PrUn_Addon/main/addon.js
+// @downloadURL  https://raw.githubusercontent.com/Manderius/PrUn_Addon/main/addon.js
+// @updateURL    https://raw.githubusercontent.com/Manderius/PrUn_Addon/main/addon.js
 // ==/UserScript==
 
 // Add exceptions that you don't want to be expanded
