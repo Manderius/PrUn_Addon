@@ -13,6 +13,8 @@ It also adds three buttons to `MAT` buffers for easy access to exchanges: Order 
 
 Copy and paste contents of `addon.js` into a new TamperMonkey script and save, then reload the Prosperous Universe tab.
 
+**Important:** You need to have BFRS turned ON in Apex (so you can see the NEW BFR button at the bottom), otherwise this script won't work.
+
 ## Adding exceptions to inline screens
 
 If you don't want to expand all screens to the top bar, open the script in TamperMonkey and edit `const exceptions = ['finances'];`.

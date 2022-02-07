@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Prosperous Universe Screens & Materials
 // @namespace    http://tampermonkey.net/
-// @version      0.3
+// @version      0.4
 // @description  Prosperous Universe enhancements.
 // @author       Manderius
 // @match        https://apex.prosperousuniverse.com/
@@ -12,10 +12,13 @@
 // ==/UserScript==
 
 // Add exceptions that you don't want to be expanded
-// If you want all screens, use the following line instead:
-// const exceptions = [];
-const exceptions = ['finances'];
+// If you want to exclude screens named "Base 5" and "Private", write them in lowercase like this:
+// const exceptions = [ 'base 5', 'private' ];
+const exceptions = [];
+
+// Set your exchange code for MAT buttons
 const exchange = 'AI1';
+
 
 function showScreensInTopBar() {
     var navbar = document.getElementById('TOUR_TARGET_SCREEN_CONTROLS');
@@ -24,7 +27,7 @@ function showScreensInTopBar() {
     var nbitUnderlineCL = navbar.children[2].children[1].classList;
     var menuUl = navbar.children[1].children[1];
     var links = [];
-    menuUl.childNodes.forEach((cn) => links.push({ 'Name': cn.children[1].innerHTML, 'Link': cn.children[1].href }));
+    menuUl.childNodes.forEach((cn) => {if (cn.children.length == 3) links.push({ 'Name': cn.children[1].innerHTML, 'Link': cn.children[1].href })});
     for (var link of links) {
         if (exceptions.includes(link.Name.toLowerCase())) continue;
         var button = `<div class="${navbarItemClassList}">
