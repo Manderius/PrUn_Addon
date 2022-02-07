@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Prosperous Universe Screens & Materials
 // @namespace    http://tampermonkey.net/
-// @version      0.4
+// @version      0.5
 // @description  Prosperous Universe enhancements.
 // @author       Manderius
 // @match        https://apex.prosperousuniverse.com/
@@ -95,15 +95,150 @@ function showBuffer(command) {
     document.getElementById('TOUR_TARGET_BUTTON_BUFFER_NEW').click();
 }
 
+function drag(element) {
+    var sourceCoordinates = element.getBoundingClientRect();
+    var mouseDownEvent = createEvent(
+        "mousedown",
+        {
+            clientX: sourceCoordinates.left,
+            clientY: sourceCoordinates.top
+        }
+    );
+
+    element.dispatchEvent(mouseDownEvent);
+
+    /* simulate a drag start event on the source element */
+    var dragStartEvent = createEvent(
+        "dragstart",
+        {
+            clientX: sourceCoordinates.left,
+            clientY: sourceCoordinates.top,
+            dataTransfer: { data: {} }
+        }
+    );
+
+    element.dispatchEvent(dragStartEvent);
+
+    /* simulate a drag event on the source element */
+    var dragEvent = createEvent(
+        "drag",
+        {
+            clientX: sourceCoordinates.left,
+            clientY: sourceCoordinates.top
+        }
+    );
+
+    element.dispatchEvent(dragEvent);
+
+    var dragEnterEvent = this.createEvent(
+        "dragenter",
+        {
+            clientX: sourceCoordinates.left + 1,
+            clientY: sourceCoordinates.top + 1,
+            dataTransfer: dragStartEvent.dataTransfer
+        }
+    );
+
+    element.dispatchEvent(dragEnterEvent);
+    return dragStartEvent;
+}
+
+function drop(dragStartEvent, source, target) {
+    var targetCoordinates = target.getBoundingClientRect();
+
+    /* simulate a drag over event on the target element */
+    var dragOverEvent = createEvent(
+        "dragover",
+        {
+            clientX: targetCoordinates.left,
+            clientY: targetCoordinates.top,
+            dataTransfer: dragStartEvent.dataTransfer
+        }
+    );
+
+    target.dispatchEvent(dragOverEvent);
+
+    /* simulate a drop event on the target element */
+    var dropEvent = createEvent(
+        "drop",
+        {
+            clientX: targetCoordinates.left,
+            clientY: targetCoordinates.top,
+            dataTransfer: dragStartEvent.dataTransfer
+        }
+    );
+
+    target.dispatchEvent(dropEvent);
+
+    /* simulate a drag end event on the source element */
+    var dragEndEvent = createEvent(
+        "dragend",
+        {
+            clientX: targetCoordinates.left,
+            clientY: targetCoordinates.top,
+            dataTransfer: dragStartEvent.dataTransfer
+        }
+    );
+
+    source.dispatchEvent(dragEndEvent);
+
+    /* simulate a mouseup event on the target element */
+    var mouseUpEvent = createEvent(
+        "mouseup",
+        {
+            clientX: targetCoordinates.left,
+            clientY: targetCoordinates.top
+        }
+    );
+
+    target.dispatchEvent(mouseUpEvent);
+
+}
+
+function transferItem(element, targetInv) {
+    var event = drag(element);
+    var searchAllExpr = './/div[contains(text(), "ALL")]';
+    var dest = document.evaluate(searchAllExpr, targetInv, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+    drop(event, element, dest);
+}
+
+// Transfer items with Array.from(sourceCont.children).forEach(c => transferItem(c.children[0], targetInv))
+
+function createEvent(eventName, options) {
+    var event = document.createEvent("CustomEvent");
+    event.initCustomEvent(eventName, true, true, null);
+
+    event.view = window;
+    event.detail = 0;
+    event.ctlrKey = false;
+    event.altKey = false;
+    event.shiftKey = false;
+    event.metaKey = false;
+    event.button = 0;
+    event.relatedTarget = null;
+
+    /* if the clientX and clientY options are specified,
+        also calculated the desired screenX and screenY values */
+    if(options.clientX && options.clientY) {
+        event.screenX = window.screenX + options.clientX;
+        event.screenY = window.screenY + options.clientY;
+    }
+
+    /* copy the rest of the options into
+        the event object */
+    for (var prop in options) {
+        event[prop] = options[prop];
+    }
+
+    return event;
+}
+
 function monitorOnElementCreated(selector, callback, onlyOnce = true) {
     const getElementsFromNodes = (nodes) => Array.from(nodes).flatMap(node => node.nodeType === 3 ? null : Array.from(node.querySelectorAll(selector))).filter(item => item !== null);
     let onMutationsObserved = function(mutations) {
         mutations.forEach(function(mutation) {
             if (mutation.addedNodes.length) {
-                console.log(mutation.addedNodes)
-                console.log(Array.from(mutation.addedNodes))
                 var elements = getElementsFromNodes(mutation.addedNodes);
-                console.log(elements)
                 for (var i = 0, len = elements.length; i < len; i++) {
                     callback(elements[i]);
                     if (onlyOnce) observer.disconnect();
