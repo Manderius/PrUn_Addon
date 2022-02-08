@@ -59,6 +59,7 @@ function createQuickRowButton(shortTextBold, shortTextNormal, longText, command)
 }
 
 function createCXButtons(container) {
+    container = container.parentElement;
     const matCmd = container.children[0].children[1].innerHTML;
     const matCmdArr = matCmd.split(" ");
     if (matCmdArr[0].toUpperCase() !== "MAT") return;
@@ -121,7 +122,7 @@ function monitorOnElementCreated(selector, callback, onlyOnce = true) {
 }
 
 function setupMaterialBufferWatch() {
-    const insideFrameSelector = '._1h7jHHAYnTmdWfZvSkS4bo';
+    const insideFrameSelector = '._2hmv3gsrf-d-M4ys0LxDQT';
     monitorOnElementCreated(insideFrameSelector, createCXButtons, false);
 }
 
