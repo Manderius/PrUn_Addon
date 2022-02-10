@@ -27,7 +27,7 @@ function showScreensInTopBar() {
     var nbitUnderlineCL = navbar.children[2].children[1].classList;
     var menuUl = navbar.children[1].children[1];
     var links = [];
-    menuUl.childNodes.forEach((cn) => {if (cn.children.length == 3) links.push({ 'Name': cn.children[1].innerHTML, 'Link': cn.children[1].href })});
+    menuUl.childNodes.forEach((cn) => {if (cn.children.length == 4) links.push({ 'Name': cn.children[1].innerHTML, 'Link': cn.children[1].href })});
     for (var link of links) {
         if (exceptions.includes(link.Name.toLowerCase())) continue;
         var button = `<div class="${navbarItemClassList}">
@@ -45,9 +45,9 @@ function createNode(htmlString) {
 }
 
 function createQuickRowButton(shortTextBold, shortTextNormal, longText, command) {
-    const template = `<div class="_38ZndITVgwaKPL7o6Nn0EM _33A_5lETf4HBqwJi_q-jhZ _3dW9W1Qi1zDylwVf7nNSih">
-                          <span><span class="_1afHq-np-jxmsbFE64yu4f">{{:shortBold}}</span>
-                              {{:shortNormal}}</span><span class="_1_V43bWTfSSXMFIzsgIWFM">: {{:longText}}
+    const template = `<div class="MApcsYEd7+wqIJTfbHP1yA== fTT52i+1oFauxHOjVfGTww== kWTH1-HkYCWeYyDRgZ7ozQ==">
+                          <span><span class="D+GJhIGmC2eFk59dvrY+Sg==">{{:shortBold}}</span>
+                              {{:shortNormal}}</span><span class="cKqzEDeyKbzb9nPry0Dkfw==">: {{:longText}}
                           </span>
                      </div>`;
     let result = template.replace("{{:shortBold}}", shortTextBold)
@@ -64,7 +64,7 @@ function createCXButtons(container) {
     const matCmdArr = matCmd.split(" ");
     if (matCmdArr[0].toUpperCase() !== "MAT") return;
     const matId = matCmdArr[1];
-    const row = createNode(`<div class="_3ZAsQKEW4Uf1rMb_vcJ9ix"></div>`);
+    const row = createNode(`<div class="oZS0zPcv8BY8OKGjLs2R-Q=="></div>`);
     const matEx = `${matId}.${exchange}`;
     row.appendChild(createQuickRowButton("CXOB", matEx, "Order Book", `CXOB ${matEx}` ));
     row.appendChild(createQuickRowButton("CXPC", matEx, "Price Chart", `CXPC ${matEx}` ));
@@ -90,7 +90,7 @@ function showBuffer(command) {
     }
 
     // Watch for future buffer creation
-    monitorOnElementCreated("._3pBmt8VeO58Hr71J67G8di", (elem) => addSubmitCommand(elem, command));
+    monitorOnElementCreated(".UoOoh9EGx7YihezkSGeV2Q\\=\\=", (elem) => addSubmitCommand(elem, command));
 
     // Create new Buffer
     document.getElementById('TOUR_TARGET_BUTTON_BUFFER_NEW').click();
@@ -257,7 +257,7 @@ function monitorOnElementCreated(selector, callback, onlyOnce = true) {
 }
 
 function setupMaterialBufferWatch() {
-    const insideFrameSelector = '._2hmv3gsrf-d-M4ys0LxDQT';
+    const insideFrameSelector = '.N32GL8CJBOw3-rNx0PBZkQ\\=\\=';
     monitorOnElementCreated(insideFrameSelector, createCXButtons, false);
 }
 
