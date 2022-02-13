@@ -131,7 +131,7 @@ function drag(element) {
 
     element.dispatchEvent(dragEvent);
 
-    var dragEnterEvent = this.createEvent(
+    var dragEnterEvent = createEvent(
         "dragenter",
         {
             clientX: sourceCoordinates.left + 1,
@@ -206,20 +206,20 @@ function transferItem(element, targetInv) {
 // Transfer items with Array.from(sourceCont.children).forEach(c => transferItem(c.children[0], targetInv))
 
 function createYellowButton(text, style, onClick) {
-    const result = `<button class="_1Y9l3J20Xn-CyxMZIcH06i _1VPBeuov5AYlOu4s7pKIlY" style="${style}">${text}</button>`;
+    const result = `<button class="kgGsDNvDoWj61w4I7VAlfA== fMW62cERnlzxZPFhnlPOeQ==" style="${style}">${text}</button>`;
     let node = createNode(result);
     node.onclick = onClick;
     return node;
 }
 
 function getItemsInInventory(inventory) {
-    const itemSelector = ".cj7GfYtJUdQOK_xrjnLg3";
+    const itemSelector = ".A-Re0xb\\+rkw3eNvxj3pMDA\\=\\=";
     return inventory.querySelectorAll(itemSelector);
 }
 
-function showTransferOverlays(sourceInventory) {
+function showTransferOverlays(sourceInventory, onCancelled, onTransferCompleted) {
     const bufferCmd = (buffer) => buffer.children[0].children[1].innerHTML.toLowerCase();
-    const allBuffers = document.querySelectorAll("._1h7jHHAYnTmdWfZvSkS4bo");
+    const allBuffers = document.querySelectorAll("._2ELYlP31j95Y98WT6zodUQ\\=\\=");
     const invCommands = ["shpi", "inv"];
     const invBuffers = Array.from(allBuffers).filter(bfr => invCommands.includes(bufferCmd(bfr).split(" ")[0]));
     const otherInvs = invBuffers.filter(bfr => bfr !== sourceInventory);
@@ -239,45 +239,64 @@ function showTransferOverlays(sourceInventory) {
         overlays.forEach(ov => ov.remove());
         overlays = [];
         transferItem(firstItem, dest);
+        if (onTransferCompleted) onTransferCompleted();
     }
 
     const cancelTransfer = () => {
         overlays.forEach(ov => ov.remove());
         overlays = [];
+        if (onCancelled) onCancelled();
     }
 
     const addOverlay = (inv, type, text, callback) => {
         const overlay = createOverlay(type, text, callback);
         overlays.push(overlay);
-        inv.querySelector("._1JqhiJ8_SwKH8PRALcO9Hc").appendChild(overlay);
+        inv.querySelector(".yGwmD9uu1MbRn5W-LIz3ug\\=\\=").appendChild(overlay);
     }
 
-    validTargetInventories.forEach(inv => addOverlay(inv, "OK", "Transfer here", doTransfer));
+    validTargetInventories.forEach(inv => addOverlay(inv, "OK", "Click to transfer", doTransfer));
     invalidTargetInventories.forEach(inv => addOverlay(inv, "ERROR", "Invalid target", cancelTransfer));
 
     drop(dragEvent, firstItem, firstItem);
+
+    return cancelTransfer;
 }
 
 function createOverlay(type, text, onClick) {
     let style = "";
+    let innerStyle = "";
     if (type === 'OK') {
         style = "background-color: rgb(166 240 78 / 30%); background-image: repeating-linear-gradient(-45deg, transparent, transparent 25px, rgb(170 240 78 / 50%) 25px, rgb(141 240 78 / 50%) 48px);";
+        innerStyle = "color: #72a940; border: 1px solid #72a940;"
     }
     else {
         style = "background-color: rgb(240 127 78 / 30%); background-image: repeating-linear-gradient(-45deg, transparent, transparent 25px, rgb(240 78 78 / 50%) 25px, rgb(240 78 78 / 50%) 48px);";
+        innerStyle = "color: #d9534f; border: 1px solid #d9534f;"
     }
-    const template = `u003Cdiv style="${style} position: absolute; width: 100%; height: 100%; z-index: 100">u003C/div>`;
+    const template = `<div style="${style} position: absolute; width: 100%; height: 100%; z-index: 100" class="g7qBrJDwt4QZY\+mWdamyVw\=\=">
+                        <div style="display: flex; flex-direction: row; justify-content: space-evenly;">
+                            <div style="${innerStyle} padding: 0px 10px; background-color: rgb(38 53 62); text-transform: uppercase; text-align: center; line-height: 45px;">${text}</div>
+                        </div>
+                    </div>`;
     let node = createNode(template);
     node.onclick = onClick;
     return node;
 }
 
 function addTransferButtonToInventory(inventory) {
-    const doTransfer = () => {
-        showTransferOverlays(inventory);
+    const onCancelTransfer = (button) => {
+        button.onclick = doTransfer;
+        button.innerHTML = 'Transfer all'; 
+    }
+
+    const doTransfer = (event) => {
+        if (getItemsInInventory(inventory).length == 0) return;
+        const doCancel = showTransferOverlays(inventory, () => {onCancelTransfer(event.target)}, () => {onCancelTransfer(event.target)});
+        event.target.onclick = doCancel;
+        event.target.innerHTML = 'Cancel transfer';
     }
     const transferButton = createYellowButton("Transfer all", "position: absolute; right: 10px; top: 10px;", doTransfer);
-    const invSpaceXPath = './/div[@class="_2WZUMILVmvQsrkHJIf9CP8"]';
+    const invSpaceXPath = './/div[@class="yGwmD9uu1MbRn5W-LIz3ug=="]';
     const dest = document.evaluate(invSpaceXPath, inventory, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
     dest.appendChild(transferButton);
 }
@@ -338,10 +357,25 @@ function setupMaterialBufferWatch() {
     monitorOnElementCreated(insideFrameSelector, createCXButtons, false);
 }
 
+function setupInventoryBufferWatch() {
+    const checkAddButtonToInventory = (element) => {
+        const bfr = element.parentElement;
+        const bufferCmd = (buffer) => buffer.children[0].children[1].innerHTML.toLowerCase();
+        const invCommands = ["shpi", "inv"];
+        if (invCommands.includes(bufferCmd(bfr).split(" ")[0])) {
+            addTransferButtonToInventory(bfr);
+        }
+    }
+
+    const insideFrameSelector = '.N32GL8CJBOw3-rNx0PBZkQ\\=\\=';
+    monitorOnElementCreated(insideFrameSelector, checkAddButtonToInventory, false);
+}
+
 function waitForApexLoad() {
     const setup = () => {
         showScreensInTopBar();
         setupMaterialBufferWatch();
+        setupInventoryBufferWatch();
     }
 
     const selector = '#TOUR_TARGET_BUTTON_BUFFER_NEW';
