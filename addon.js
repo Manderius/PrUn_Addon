@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Prosperous Universe Screens & Materials
 // @namespace    http://tampermonkey.net/
-// @version      0.5
+// @version      0.7
 // @description  Prosperous Universe enhancements.
 // @author       Manderius
 // @match        https://apex.prosperousuniverse.com/
@@ -204,6 +204,83 @@ function transferItem(element, targetInv) {
 }
 
 // Transfer items with Array.from(sourceCont.children).forEach(c => transferItem(c.children[0], targetInv))
+
+function createYellowButton(text, style, onClick) {
+    const result = `<button class="_1Y9l3J20Xn-CyxMZIcH06i _1VPBeuov5AYlOu4s7pKIlY" style="${style}">${text}</button>`;
+    let node = createNode(result);
+    node.onclick = onClick;
+    return node;
+}
+
+function getItemsInInventory(inventory) {
+    const itemSelector = ".cj7GfYtJUdQOK_xrjnLg3";
+    return inventory.querySelectorAll(itemSelector);
+}
+
+function showTransferOverlays(sourceInventory) {
+    const bufferCmd = (buffer) => buffer.children[0].children[1].innerHTML.toLowerCase();
+    const allBuffers = document.querySelectorAll("._1h7jHHAYnTmdWfZvSkS4bo");
+    const invCommands = ["shpi", "inv"];
+    const invBuffers = Array.from(allBuffers).filter(bfr => invCommands.includes(bufferCmd(bfr).split(" ")[0]));
+    const otherInvs = invBuffers.filter(bfr => bfr !== sourceInventory);
+    const sourceItems = getItemsInInventory(sourceInventory);
+    const firstItem = sourceItems[0];
+    const dragEvent = drag(firstItem);
+    const validTargetInventories = [];
+    const invalidTargetInventories = [];
+    otherInvs.forEach(inv => {
+        var searchAllExpr = './/div[contains(text(), "ALL")]';
+        var dest = document.evaluate(searchAllExpr, inv, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+        if (dest !== null) validTargetInventories.push(inv);
+        else invalidTargetInventories.push(inv);
+    });
+    let overlays = [];
+    const doTransfer = (dest) => {
+        overlays.forEach(ov => ov.remove());
+        overlays = [];
+        transferItem(firstItem, dest);
+    }
+
+    const cancelTransfer = () => {
+        overlays.forEach(ov => ov.remove());
+        overlays = [];
+    }
+
+    const addOverlay = (inv, type, text, callback) => {
+        const overlay = createOverlay(type, text, callback);
+        overlays.push(overlay);
+        inv.querySelector("._1JqhiJ8_SwKH8PRALcO9Hc").appendChild(overlay);
+    }
+
+    validTargetInventories.forEach(inv => addOverlay(inv, "OK", "Transfer here", doTransfer));
+    invalidTargetInventories.forEach(inv => addOverlay(inv, "ERROR", "Invalid target", cancelTransfer));
+
+    drop(dragEvent, firstItem, firstItem);
+}
+
+function createOverlay(type, text, onClick) {
+    let style = "";
+    if (type === 'OK') {
+        style = "background-color: rgb(166 240 78 / 30%); background-image: repeating-linear-gradient(-45deg, transparent, transparent 25px, rgb(170 240 78 / 50%) 25px, rgb(141 240 78 / 50%) 48px);";
+    }
+    else {
+        style = "background-color: rgb(240 127 78 / 30%); background-image: repeating-linear-gradient(-45deg, transparent, transparent 25px, rgb(240 78 78 / 50%) 25px, rgb(240 78 78 / 50%) 48px);";
+    }
+    const template = `u003Cdiv style="${style} position: absolute; width: 100%; height: 100%; z-index: 100">u003C/div>`;
+    let node = createNode(template);
+    node.onclick = onClick;
+    return node;
+}
+
+function addTransferButtonToInventory(inventory) {
+    const doTransfer = () => {
+        showTransferOverlays(inventory);
+    }
+    const transferButton = createYellowButton("Transfer all", "position: absolute; right: 10px; top: 10px;", doTransfer);
+    const invSpaceXPath = './/div[@class="_2WZUMILVmvQsrkHJIf9CP8"]';
+    const dest = document.evaluate(invSpaceXPath, inventory, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+    dest.appendChild(transferButton);
+}
 
 function createEvent(eventName, options) {
     var event = document.createEvent("CustomEvent");
