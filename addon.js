@@ -238,7 +238,7 @@ function showTransferOverlays(sourceInventory, onCancelled, onTransferCompleted)
     const doTransfer = (dest) => {
         overlays.forEach(ov => ov.remove());
         overlays = [];
-        transferItem(firstItem, dest);
+        sourceItems.forEach(i => transferItem(i, dest));
         if (onTransferCompleted) onTransferCompleted();
     }
 
@@ -254,7 +254,7 @@ function showTransferOverlays(sourceInventory, onCancelled, onTransferCompleted)
         inv.querySelector(".yGwmD9uu1MbRn5W-LIz3ug\\=\\=").appendChild(overlay);
     }
 
-    validTargetInventories.forEach(inv => addOverlay(inv, "OK", "Click to transfer", doTransfer));
+    validTargetInventories.forEach(inv => addOverlay(inv, "OK", "Click to transfer", () => doTransfer(inv)));
     invalidTargetInventories.forEach(inv => addOverlay(inv, "ERROR", "Invalid target", cancelTransfer));
 
     drop(dragEvent, firstItem, firstItem);
@@ -286,7 +286,7 @@ function createOverlay(type, text, onClick) {
 function addTransferButtonToInventory(inventory) {
     const onCancelTransfer = (button) => {
         button.onclick = doTransfer;
-        button.innerHTML = 'Transfer all'; 
+        button.innerHTML = 'Transfer all';
     }
 
     const doTransfer = (event) => {
