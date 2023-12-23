@@ -1,4 +1,13 @@
 # Inline screens & Material shortcuts for Prosperous Universe
+
+# Warning! Get new version here:
+
+This repository is no longer maintained and Inline screens have been merged into PMMG Extended: https://sites.google.com/view/pmmgextended/home
+
+Information below is outdated and installing from this repository will not work.
+
+## Details
+
 TamperMonkey script to improve UI of Prosperous Universe.
 
 This script adds individual screens from the SCRNS dropdown to the top bar next to the **FULL** button.
